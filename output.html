@@ -493,7 +493,7 @@
                 .attr("fill-opacity", 0)
                 .attr("stroke-opacity", 0).remove()
                         
-                d3.selectAll(".stooltip")
+            d3.selectAll(".stooltip")
                 .attr("fill-opacity", 1)
                 .attr("stroke-opacity", 1)
                 .transition()
@@ -647,11 +647,38 @@
                     .range([height, 0])
                  svg.append("g").call(d3.axisLeft(y))
 
+            let histogram = d3.histogram()
+                .domain(y.domain())
+                .thresholds(y.ticks(10))    // Important: how many bins approx are going to be made? It is the 'resolution' of the violin plot
+                .value(d => d)
+
+
+
+            let yScale = d3.scaleLinear().domain([0,1]).range([400,0])
+            let yAxis = d3.axisRight().scale(yScale).tickSize(200)
 
 
 
 
-            //////valence  
+            //////valence 
+            let areaV = d3.area()
+                        .x0(d => -d.length/3) 
+                        .x1(d => d.length/3)
+                        .y(d => yScale(d.x0-0.125))   
+                        .curve(d3.curveCatmullRom)
+            
+            svg
+             .selectAll("myViolin")
+             .data([valence]).enter()        // So now we are working group per group
+             .append("g")
+            .attr("transform", (d)=>"translate( 40)") // Translation on the right to be at the group position
+            .append("path")
+             .style("stroke", "none")
+             .style("fill","pink")
+             .style("opacity","0.8")
+              .attr("d", d => areaV(histogram(d)))   // This makes the line smoother to give the violin appearance. Try d3.curveStep to see the difference
+        
+
             var v_center = 40
             var v_width = 50
             // Show the vertical line
@@ -702,6 +729,24 @@
 
 
             //////energy  
+            let areaE = d3.area()
+                        .x0(d => -d.length/3) 
+                        .x1(d => d.length/3)
+                        .y(d => yScale(d.x0-0.125))   
+                        .curve(d3.curveCatmullRom)
+            
+            svg
+             .selectAll("myViolin")
+             .data([energy]).enter()        // So now we are working group per group
+             .append("g")
+            .attr("transform", (d)=>"translate( 130)") // Translation on the right to be at the group position
+            .append("path")
+             .style("stroke", "none")
+             .style("fill","lightgreen")
+             .style("opacity","0.5")
+              .attr("d", d => areaE(histogram(d)))   // This makes the line smoother to give the violin appearance. Try d3.curveStep to see the difference
+        
+
             var e_center = 130
             var e_width = 50
             // Show the vertical line
@@ -748,7 +793,25 @@
               .attr("stroke-width",0.8)
 
 
-            //////acousticness  
+            //////acousticness 
+            let areaA = d3.area()
+                        .x0(d => -d.length/3) 
+                        .x1(d => d.length/3)
+                        .y(d => yScale(d.x0-0.125))   
+                        .curve(d3.curveCatmullRom);
+            
+            svg
+             .selectAll("myViolin")
+             .data([acousticness]).enter()        // So now we are working group per group
+             .append("g")
+            .attr("transform", (d)=>"translate( 220)") // Translation on the right to be at the group position
+            .append("path")
+             .style("stroke", "none")
+             .style("fill","yellow")
+             .style("opacity","0.3")
+              .attr("d", d => areaA(histogram(d)))   // This makes the line smoother to give the violin appearance. Try d3.curveStep to see the difference
+        
+ 
              var a_center = 220
              var a_width = 50
             // Show the vertical line
@@ -796,6 +859,24 @@
 
 
              //danceability  
+             let areaD = d3.area()
+                        .x0(d => -d.length/3) 
+                        .x1(d => d.length/3)
+                        .y(d => yScale(d.x0-0.125))   
+                        .curve(d3.curveCatmullRom);
+            
+            svg
+             .selectAll("myViolin")
+             .data([danceability]).enter()        // So now we are working group per group
+             .append("g")
+            .attr("transform", (d)=>"translate(310)") // Translation on the right to be at the group position
+            .append("path")
+             .style("stroke", "none")
+             .style("fill","red")
+             .style("opacity","0.3")
+              .attr("d", d => areaD(histogram(d)))   // This makes the line smoother to give the violin appearance. Try d3.curveStep to see the difference
+        
+
             var d_center = 310
             var d_width = 50
             // Show the vertical line
@@ -844,6 +925,23 @@
 
 
             //tempo  
+            let areaT = d3.area()
+                        .x0(d => -d.length/3) 
+                        .x1(d => d.length/3)
+                        .y(d => yScale(d.x0-0.125))   
+                        .curve(d3.curveCatmullRom);
+            
+            svg
+             .selectAll("myViolin")
+             .data([tempo]).enter()        // So now we are working group per group
+             .append("g")
+            .attr("transform", (d)=>"translate(400)") // Translation on the right to be at the group position
+            .append("path")
+             .style("stroke", "none")
+             .style("fill","blue")
+             .style("opacity","0.3")
+              .attr("d", d => areaT(histogram(d)))   // This makes the line smoother to give the violin appearance. Try d3.curveStep to see the difference
+        
             var t_center = 400
             var t_width = 50
             // Show the vertical line
@@ -936,6 +1034,9 @@
             }
             )
             .on('click', function(d) {
+            let div = d3.select("body").append("div")
+                .attr("id", "tooltip-box")
+                .style("visibility", "hidden");
 
             console.log('hi' );
             if (d3.select(this).attr('id') == 'valence') {
@@ -980,11 +1081,13 @@
                 }
                                 }
 
-            return selectedTooltip.style("visibility", "visible").style("top", 20+"px").style("left", 730+"px")
-            .html("<p class='stooltip'>"+"Selected: " +"<br> " + "<strong>" + mSelectedIndex+ "</strong>").style("font-size", "18px").style("background", indexColor)
-                .style("border", "1px solid black").style("padding", "5px").style("box-shadow", "1.5px 1.5px 1.5px 0px black")
-                .style("font-family", "courier");
-
+            return selectedTooltip.style("visibility", "visible").style("top", (+h)+80+"px").style("left",(+w)+620+"px")
+            .html("<p class='tooltip'>" + "<strong>" + mSelectedIndex+ "</strong>"  +"<br>Max: " + d3.format(".3f")(q3) +"<br>Q3: " + d3.format(".3f")(q3)
+                                 +"<br>Median: " + d3.format(".3f")(median) + "<br>Q1: " + d3.format(".3f")(q1)
+                                 +  "<br>Min: "+ d3.format(".3f")(min))
+                        .style("font-size", "12px").style("background",  d3.rgb(indexColor).brighter(0.6)).style("border", "1px solid black").style("padding", "2px")
+                        .style("box-shadow", "2px 2px 2px 0px black").style("font-family", "verdana").style("text-align", "center").style("text-transform", "uppercase"); 
+            
                 drawLineChart()
                 })
 ;
@@ -1240,6 +1343,8 @@
         }
 
         function drawTable() {
+
+
             // define base elements of tooltip table
 
             let div = d3.select("body").append("div")
@@ -1343,6 +1448,7 @@
         }
 
         function openTooltip() {
+            d3.selectAll(".stooltip").remove()
             // remove all table contents
             d3.selectAll("svg#tooltip-table-main g.tooltip-table-main-header").remove();
             d3.selectAll("svg#tooltip-table-main g.tooltip-table-main-rows").remove();
